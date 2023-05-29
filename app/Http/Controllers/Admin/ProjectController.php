@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\Technology;
 use App\Models\Type;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 use Illuminate\Support\Str;
@@ -47,10 +48,18 @@ class ProjectController extends Controller
     {
         $formData = $request->all();
 
-        // dd($formData);
-
+        
         $this->validation($formData);
 
+        
+        if($request->hasFile('cover_image')) {
+        
+            $path = Storage::put('project_images', $request->cover_image);
+
+            $formData['cover_image'] = $path;
+
+        }
+        
         $newProject = new Project();
 
         $newProject->fill($formData);
@@ -98,9 +107,25 @@ class ProjectController extends Controller
     {
         $formData = $request->all();
 
+        
+        $this->validation($formData);
+
         // dd($formData);
 
-        $this->validation($formData);
+        if($request->hasFile('cover_image')) {
+
+            // controllo se il progetto aveva già un'immagine di copertina
+            if($project->cover_image) {
+                Storage::delete($project->cover_image);
+            }
+
+            $path = Storage::put('project_images', $request->cover_image);
+
+            $formData['cover_image'] = $path;
+
+        }
+        
+        // dd($formData);
 
         $project->slug = Str::slug($formData['title'],'-');
 
@@ -123,6 +148,11 @@ class ProjectController extends Controller
      */
     public function destroy(Project $project)
     {
+
+        if($project->cover_image) {
+            Storage::delete($project->cover_image);
+        }
+
         $project->delete();
 
         return redirect()->route('admin.projects.index');
@@ -137,6 +167,7 @@ class ProjectController extends Controller
             'description' => 'required',
             'type_id' => 'nullable|exists:types,id',
             'technologies' => 'exists:technologies,id',
+            'cover_image' => 'nullable|image|max:2048',
 
         ], [
             'title.required' => 'Il titolo deve essere compilato', 
@@ -145,7 +176,9 @@ class ProjectController extends Controller
             'repo.max' => 'Il link della repo può avere massimo :max caratteri', 
             'description.required' => 'La descrizione deve essere inserita', 
             'type_id.exists' => 'La tipologia deve essere esistente nel nostro sito',
-            'technologies.exists' => 'La tecnologia deve essere esistente nel nostro sito'
+            'technologies.exists' => 'La tecnologia deve essere esistente nel nostro sito',
+            'cover_image.image' => 'Il file deve essere di formato immagine',
+            'cover_image.max' => 'Il file non deve eccedere i 2 MB di dimensione',
         ])->validate();
 
         return $validator;

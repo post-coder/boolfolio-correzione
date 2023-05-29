@@ -3,6 +3,10 @@
 @section('content')
 
 <div class="container">
+  <div class="text-center">
+    <img class="w-25" src="{{ asset('storage/' . $project->cover_image) }}" alt="">
+  </div>
+
   <h1>Progetto: {{$project->title}}</h1>
   <h4>Tipologia: {{$project->type ? $project->type->name : 'nessuna'}}</h4>
   <h5>Tecnologie: @foreach ($project->technologies as $technology)
