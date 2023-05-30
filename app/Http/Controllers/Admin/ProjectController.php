@@ -168,7 +168,6 @@ class ProjectController extends Controller
             'type_id' => 'nullable|exists:types,id',
             'technologies' => 'exists:technologies,id',
             'cover_image' => 'nullable|image|max:2048',
-
         ], [
             'title.required' => 'Il titolo deve essere compilato', 
             'title.max' => 'Il titolo può avere massimo :max caratteri', 
